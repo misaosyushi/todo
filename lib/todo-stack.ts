@@ -8,28 +8,47 @@ export class TodoStack extends cdk.Stack {
     super(scope, id, props);
 
     const tableName = 'ToDoTable';
-    const primaKey = 'id';
+    const primaryKey = 'id';
+    const indexName = 'title-index';
 
-    const getToDoFunction = new NodejsFunction(this, 'todoGetFunction', {
+    const todoTable = new Table(this, 'toDoTable', {
+      tableName: tableName,
+      partitionKey: {
+        name: primaryKey,
+        type: AttributeType.STRING,
+      },
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production code
+    });
+
+    todoTable.addGlobalSecondaryIndex({
+      indexName: indexName,
+      partitionKey: {
+        name: 'title',
+        type: AttributeType.STRING
+      },
+    });
+
+    const getToDoFunction = new NodejsFunction(this, 'getToDoFunction', {
       entry: 'lambda/api/todo/get.ts',
       handler: 'getHandler',
       timeout: cdk.Duration.seconds(30),
       environment: {
         'TABLE_NAME': tableName,
-        'PRIMARY_KEY': primaKey,
+        'PRIMARY_KEY': primaryKey,
       },
     });
 
-    const listToDoFunction = new NodejsFunction(this, 'todoListFunction', {
+    const listToDoFunction = new NodejsFunction(this, 'listToDoFunction', {
       entry: 'lambda/api/todo/list.ts',
       handler: 'listHandler',
       timeout: cdk.Duration.seconds(30),
       environment: {
         'TABLE_NAME': tableName,
+        'INDEX_NAME': indexName,
       },
     });
 
-    const postToDoFunction = new NodejsFunction(this, 'todoPostFunction', {
+    const postToDoFunction = new NodejsFunction(this, 'postToDoFunction', {
       entry: 'lambda/api/todo/post.ts',
       handler: 'postHandler',
       timeout: cdk.Duration.seconds(30),
@@ -38,45 +57,30 @@ export class TodoStack extends cdk.Stack {
       },
     });
 
-    const putToDoFunction = new NodejsFunction(this, 'todoPutFunction', {
+    const putToDoFunction = new NodejsFunction(this, 'putToDoFunction', {
       entry: 'lambda/api/todo/put.ts',
       handler: 'putHandler',
       timeout: cdk.Duration.seconds(30),
       environment: {
         'TABLE_NAME': tableName,
-        'PRIMARY_KEY': primaKey,
+        'PRIMARY_KEY': primaryKey,
       },
     });
 
-    const deleteToDoFunction = new NodejsFunction(this, 'todoDeleteFunction', {
+    const deleteToDoFunction = new NodejsFunction(this, 'deleteToDoFunction', {
       entry: 'lambda/api/todo/delete.ts',
       handler: 'deleteHandler',
       timeout: cdk.Duration.seconds(30),
       environment: {
         'TABLE_NAME': tableName,
-        'PRIMARY_KEY': primaKey,
+        'PRIMARY_KEY': primaryKey,
       },
     });
 
-    const todoTable = new Table(this, 'todo', {
-      tableName: tableName,
-      partitionKey: {
-        name: primaKey,
-        type: AttributeType.STRING,
-      },
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production code
-    });
-
-    // FIXME: コンパイルエラーになってるけどcdkコマンドは通る。typesが足りないとか？
-    // @ts-ignore
     todoTable.grantReadData(getToDoFunction)
-    // @ts-ignore
     todoTable.grantReadData(listToDoFunction)
-    // @ts-ignore
     todoTable.grantWriteData(postToDoFunction)
-    // @ts-ignore
     todoTable.grantWriteData(putToDoFunction)
-    // @ts-ignore
     todoTable.grantWriteData(deleteToDoFunction)
 
     const api = new RestApi(this, "todoApi", {
@@ -85,21 +89,21 @@ export class TodoStack extends cdk.Stack {
     });
 
     const todos = api.root.addResource("todo");
-    // @ts-ignore
+    // list
     const listToDoIntegration = new LambdaIntegration(listToDoFunction);
     todos.addMethod("GET", listToDoIntegration);
-    // @ts-ignore
+    // post
     const postToDoIntegration = new LambdaIntegration(postToDoFunction);
     todos.addMethod("POST", postToDoIntegration);
 
     const todo = todos.addResource("{id}");
-    // @ts-ignore
+    // get
     const getToDoIntegration = new LambdaIntegration(getToDoFunction);
     todo.addMethod("GET", getToDoIntegration);
-    // @ts-ignore
+    // put
     const putToDoIntegration = new LambdaIntegration(putToDoFunction);
     todo.addMethod("PUT", putToDoIntegration);
-    // @ts-ignore
+    // delete
     const deleteToDoIntegration = new LambdaIntegration(deleteToDoFunction);
     todo.addMethod("DELETE", deleteToDoIntegration);
   }
