@@ -1,30 +1,27 @@
-import AWS from 'aws-sdk';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { DB } from '../config';
 
-const db = new AWS.DynamoDB.DocumentClient();
-const TABLE_NAME = process.env.TABLE_NAME || "";
-const PRIMARY_KEY = process.env.PRIMARY_KEY || "";
+const PRIMARY_KEY = process.env.PRIMARY_KEY || '';
 
-export const handler = async (event: any = {}): Promise<any> => {
-  console.log("======= event: ", event)
-  const id = event.pathParameters.id;
-  if (!id) {
+export async function getHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  if (!event.pathParameters) {
     return {
       statusCode: 400,
-      body: `Error: You are missing the path parameter id`,
+      body: 'Error: bad request',
     };
   }
 
   const params = {
-    TableName: TABLE_NAME,
+    TableName: process.env.TABLE_NAME,
     Key: {
-      [PRIMARY_KEY]: id,
+      [PRIMARY_KEY]: event.pathParameters.id,
     },
   };
 
   try {
-    const response = await db.get(params).promise();
+    const response = await DB.get(params).promise();
     return { statusCode: 200, body: JSON.stringify(response.Item) };
   } catch (dbError) {
     return { statusCode: 500, body: JSON.stringify(dbError) };
   }
-};
+}
