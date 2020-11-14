@@ -90,21 +90,37 @@ export class TodoStack extends cdk.Stack {
 
     const todos = api.root.addResource("todo");
     // list
-    const listToDoIntegration = new LambdaIntegration(listToDoFunction);
-    todos.addMethod("GET", listToDoIntegration);
+    todos.addMethod("GET", new LambdaIntegration(listToDoFunction), {
+      apiKeyRequired: true,
+    });
     // post
-    const postToDoIntegration = new LambdaIntegration(postToDoFunction);
-    todos.addMethod("POST", postToDoIntegration);
+    todos.addMethod("POST", new LambdaIntegration(postToDoFunction), {
+      apiKeyRequired: true,
+    });
 
     const todo = todos.addResource("{id}");
     // get
-    const getToDoIntegration = new LambdaIntegration(getToDoFunction);
-    todo.addMethod("GET", getToDoIntegration);
+    todo.addMethod("GET", new LambdaIntegration(getToDoFunction), {
+      apiKeyRequired: true,
+    });
     // put
-    const putToDoIntegration = new LambdaIntegration(putToDoFunction);
-    todo.addMethod("PUT", putToDoIntegration);
+    todo.addMethod("PUT", new LambdaIntegration(putToDoFunction), {
+      apiKeyRequired: true,
+    });
     // delete
-    const deleteToDoIntegration = new LambdaIntegration(deleteToDoFunction);
-    todo.addMethod("DELETE", deleteToDoIntegration);
+    todo.addMethod("DELETE", new LambdaIntegration(deleteToDoFunction), {
+      apiKeyRequired: true,
+    });
+
+    // create api key
+    const apiKey =  api.addApiKey('apiKey', {
+      apiKeyName: 'ToDoAPIKey',
+    })
+
+    api.addUsagePlan('forAPIKey', {
+      apiKey,
+    }).addApiStage({
+      stage: api.deploymentStage
+    })
   }
 }
