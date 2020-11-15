@@ -13,6 +13,7 @@ export async function listHandler(event: APIGatewayProxyEvent): Promise<APIGatew
       KeyConditionExpression: '#t = :title'
     }
 
+    // TODO: DBアクセス用のクラスに切り出したい
     try {
       const response = await DB.query(params).promise();
       return {

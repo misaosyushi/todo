@@ -18,6 +18,7 @@ export async function getHandler(event: APIGatewayProxyEvent): Promise<APIGatewa
     },
   };
 
+  // TODO: DBアクセス用のクラスに切り出したい
   try {
     const response = await DB.get(params).promise();
     return {

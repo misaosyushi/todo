@@ -1,15 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import { NodejsFunction } from '@aws-cdk/aws-lambda-nodejs';
 import { AttributeType, Table } from '@aws-cdk/aws-dynamodb';
-import {
-  ApiKeySourceType,
-  LambdaIntegration,
-  RestApi,
-  IResource,
-  MockIntegration,
-  PassthroughBehavior,
-  Model,
-} from '@aws-cdk/aws-apigateway';
+import { ApiKeySourceType, LambdaIntegration, RestApi, Cors } from '@aws-cdk/aws-apigateway';
 
 export class TodoStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -94,6 +86,12 @@ export class TodoStack extends cdk.Stack {
     const api = new RestApi(this, "todoApi", {
       restApiName: "ToDoAPI",
       apiKeySourceType: ApiKeySourceType.HEADER,
+      defaultCorsPreflightOptions: {
+        allowOrigins: Cors.ALL_ORIGINS,
+        allowMethods: Cors.ALL_METHODS,
+        allowHeaders: Cors.DEFAULT_HEADERS,
+        statusCode: 200,
+      }
     });
 
     const todos = api.root.addResource("todo");
@@ -120,10 +118,6 @@ export class TodoStack extends cdk.Stack {
       apiKeyRequired: true,
     });
 
-    addCorsOptions(todos);
-    addCorsOptions(todo);
-
-    // create api key
     const apiKey =  api.addApiKey('apiKey', {
       apiKeyName: 'ToDoAPIKey',
     })
@@ -134,41 +128,4 @@ export class TodoStack extends cdk.Stack {
       stage: api.deploymentStage
     })
   }
-}
-
-export function addCorsOptions(apiResource: IResource) {
-  apiResource.addMethod("OPTIONS", new MockIntegration({
-      integrationResponses: [
-        {
-          statusCode: "200",
-          responseParameters: {
-            "method.response.header.Access-Control-Allow-Headers":
-              "'Content-Type,X-Amz-Date,Authorization,X-API-KEY,X-Amz-Security-Token,X-Amz-User-Agent'",
-            "method.response.header.Access-Control-Allow-Origin": "'*'",
-            "method.response.header.Access-Control-Allow-Credentials": "'false'",
-            "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE'",
-          },
-        },
-      ],
-      passthroughBehavior: PassthroughBehavior.NEVER,
-      requestTemplates: {
-        "application/json": '{"statusCode": 200}',
-      },
-    }), {
-    methodResponses: [
-      {
-        statusCode: "200",
-        responseParameters: {
-          "method.response.header.Access-Control-Allow-Headers": true,
-          "method.response.header.Access-Control-Allow-Methods": true,
-          "method.response.header.Access-Control-Allow-Credentials": true,
-          "method.response.header.Access-Control-Allow-Origin": true,
-        },
-        responseModels: {
-          "application/json":  Model.EMPTY_MODEL
-        },
-      },
-    ],
-    }
-  );
 }

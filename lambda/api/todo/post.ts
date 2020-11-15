@@ -23,12 +23,13 @@ export async function postHandler(event: APIGatewayProxyEvent): Promise<APIGatew
     }
   }
 
+  // TODO: DBアクセス用のクラスに切り出したい
   try {
-    const response = await DB.put(params).promise();
+    await DB.put(params).promise();
     return {
       statusCode: 200,
       headers: HEADER,
-      body: JSON.stringify(response.Item)
+      body: 'Success',
     };
   } catch (dbError) {
     return {statusCode: 500, body: JSON.stringify(dbError)};

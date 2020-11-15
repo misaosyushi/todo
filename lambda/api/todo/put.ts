@@ -40,12 +40,13 @@ export async function putHandler(event: APIGatewayProxyEvent): Promise<APIGatewa
     UpdateExpression: 'set #t = :newTitle, #d = :newDetail, #dd = :newDeadlineDate, #s = :newStatus',
   };
 
+  // TODO: DBアクセス用のクラスに切り出したい
   try {
-    const response = await DB.update(params).promise();
+    await DB.update(params).promise();
     return {
       statusCode: 200,
       headers: HEADER,
-      body: JSON.stringify(response.Item)
+      body: 'Success',
     };
   } catch (dbError) {
     return { statusCode: 500, body: JSON.stringify(dbError) };

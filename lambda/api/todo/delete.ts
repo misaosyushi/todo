@@ -18,12 +18,13 @@ export async function deleteHandler(event: APIGatewayProxyEvent): Promise<APIGat
     },
   }
 
+  // TODO: DBアクセス用のクラスに切り出したい
   try {
-    const response = await DB.delete(params).promise();
+    await DB.delete(params).promise();
     return {
       statusCode: 200,
       headers: HEADER,
-      body: JSON.stringify(response.Item)
+      body: 'Success',
     };
   } catch (dbError) {
     return { statusCode: 500, body: JSON.stringify(dbError) };
