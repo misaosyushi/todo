@@ -1,10 +1,10 @@
 # ToDo
 
-ToDoのインフラの管理とAPIを提供します。
+ToDoアプリのインフラとAPIです.
 
 ## Document
 
-- API仕様書
+- [API仕様書](https://github.com/misaosyushi/todo/blob/main/docs/api-spec.md)
 
 ## Useful commands
 
