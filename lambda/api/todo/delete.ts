@@ -1,7 +1,6 @@
-import {APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DB } from '../config';
-
-const PRIMARY_KEY = process.env.PRIMARY_KEY || '';
+import { HEADER } from './todo';
 
 export async function deleteHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   if (!event.pathParameters) {
@@ -11,17 +10,22 @@ export async function deleteHandler(event: APIGatewayProxyEvent): Promise<APIGat
     };
   }
 
+  const primaryKey = process.env.PRIMARY_KEY || '';
   const params = {
     TableName: process.env.TABLE_NAME,
     Key: {
-      [PRIMARY_KEY]: event.pathParameters.id,
+      [primaryKey]: event.pathParameters.id,
     },
   }
 
   try {
     const response = await DB.delete(params).promise();
-    return {statusCode: 200, body: JSON.stringify(response.Item)};
+    return {
+      statusCode: 200,
+      headers: HEADER,
+      body: JSON.stringify(response.Item)
+    };
   } catch (dbError) {
-    return {statusCode: 500, body: JSON.stringify(dbError)};
+    return { statusCode: 500, body: JSON.stringify(dbError) };
   }
 }

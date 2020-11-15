@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuid } from 'uuid';
 import { DB } from '../config';
-import { ToDo } from './todo';
+import { ToDo, HEADER } from './todo';
 
 export async function postHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   if (!event.body) {
@@ -25,7 +25,11 @@ export async function postHandler(event: APIGatewayProxyEvent): Promise<APIGatew
 
   try {
     const response = await DB.put(params).promise();
-    return {statusCode: 200, body: JSON.stringify(response.Item)};
+    return {
+      statusCode: 200,
+      headers: HEADER,
+      body: JSON.stringify(response.Item)
+    };
   } catch (dbError) {
     return {statusCode: 500, body: JSON.stringify(dbError)};
   }

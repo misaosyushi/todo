@@ -1,5 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DB } from '../config';
+import { HEADER } from './todo';
 
 export async function listHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   let params
@@ -14,9 +15,13 @@ export async function listHandler(event: APIGatewayProxyEvent): Promise<APIGatew
 
     try {
       const response = await DB.query(params).promise();
-      return {statusCode: 200, body: JSON.stringify(response.Items)};
+      return {
+        statusCode: 200,
+        headers: HEADER,
+        body: JSON.stringify(response.Items),
+      };
     } catch (dbError) {
-      return {statusCode: 500, body: JSON.stringify(dbError)};
+      return { statusCode: 500, body: JSON.stringify(dbError) };
     }
   }
 
@@ -26,7 +31,11 @@ export async function listHandler(event: APIGatewayProxyEvent): Promise<APIGatew
 
   try {
     const response = await DB.scan(params).promise();
-    return {statusCode: 200, body: JSON.stringify(response.Items)};
+    return {
+      statusCode: 200,
+      headers: HEADER,
+      body: JSON.stringify(response.Items),
+    };
   } catch (dbError) {
     return {statusCode: 500, body: JSON.stringify(dbError)};
   }

@@ -1,8 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DB } from '../config';
-import { ToDo } from './todo';
-
-const PRIMARY_KEY = process.env.PRIMARY_KEY || '';
+import { HEADER, ToDo } from './todo';
 
 export async function putHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   if (!event.pathParameters) {
@@ -20,11 +18,12 @@ export async function putHandler(event: APIGatewayProxyEvent): Promise<APIGatewa
   }
 
   const toDo: ToDo = JSON.parse(event.body)
+  const primaryKey = process.env.PRIMARY_KEY || '';
 
   const params = {
     TableName: process.env.TABLE_NAME,
     Key: {
-      [PRIMARY_KEY]: event.pathParameters.id,
+      [primaryKey]: event.pathParameters.id,
     },
     ExpressionAttributeNames: {
       '#t': 'title',
@@ -43,7 +42,11 @@ export async function putHandler(event: APIGatewayProxyEvent): Promise<APIGatewa
 
   try {
     const response = await DB.update(params).promise();
-    return { statusCode: 200, body: JSON.stringify(response.Item) };
+    return {
+      statusCode: 200,
+      headers: HEADER,
+      body: JSON.stringify(response.Item)
+    };
   } catch (dbError) {
     return { statusCode: 500, body: JSON.stringify(dbError) };
   }
