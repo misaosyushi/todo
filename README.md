@@ -1,8 +1,10 @@
-# Welcome to your CDK TypeScript project!
+# ToDo
 
-This is a blank project for TypeScript development with CDK.
+ToDoのインフラの管理とAPIを提供します。
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## Document
+
+- API仕様書
 
 ## Useful commands
 
