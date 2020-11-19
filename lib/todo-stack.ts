@@ -124,6 +124,10 @@ export class TodoStack extends cdk.Stack {
 
     api.addUsagePlan('forAPIKey', {
       apiKey,
+      throttle: {
+        rateLimit: 20,
+        burstLimit: 200
+      },
     }).addApiStage({
       stage: api.deploymentStage
     })
